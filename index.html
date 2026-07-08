@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>しらべ帳 | 白色申告 収支管理</title>
+<meta name="description" content="工場保守点検など個人事業主のための白色申告 収支内訳書 作成支援アプリ">
+<meta name="theme-color" content="#1C2B36">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1C2B36;
+  --paper:#F3F1EA;
+  --panel:#FFFFFF;
+  --steel:#6B8A99;
+  --steel-dim:#A9BAC2;
+  --amber:#D98E3F;
+  --amber-deep:#B96F27;
+  --plus:#4B7A5B;
+  --minus:#B24D3E;
+  --grid:rgba(28,43,54,0.12);
+  --grid-strong:rgba(28,43,54,0.22);
+  --font-display:'Barlow Condensed',sans-serif;
+  --font-body:'Noto Sans JP',sans-serif;
+  --font-mono:'Roboto Mono',monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    linear-gradient(rgba(28,43,54,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(28,43,54,0.035) 1px, transparent 1px);
+  background-size:24px 24px;
+}
+button{font-family:inherit;}
+.app{max-width:1080px;margin:0 auto;padding:0 16px 80px;}
+
+/* ---------- Nameplate header ---------- */
+.nameplate{
+  margin:16px 0 20px;
+  background:linear-gradient(180deg,#22333F 0%, var(--ink) 100%);
+  border-radius:10px;
+  padding:18px 22px;
+  position:relative;
+  box-shadow:0 6px 18px rgba(28,43,54,0.25), inset 0 0 0 1px rgba(255,255,255,0.06);
+  color:#F3F1EA;
+}
+.nameplate::before,.nameplate::after,
+.nameplate .rivet-tl,.nameplate .rivet-br{
+  content:"";
+  position:absolute;
+  width:6px;height:6px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #D9D2C2, #8B8878);
+}
+.nameplate::before{top:8px;left:8px;}
+.nameplate::after{bottom:8px;right:8px;}
+.nameplate .rivet-tl{top:8px;right:8px;}
+.nameplate .rivet-br{bottom:8px;left:8px;}
+.nameplate-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.brand{font-family:var(--font-display);font-weight:700;font-size:28px;letter-spacing:0.5px;}
+.brand small{display:block;font-family:var(--font-body);font-size:11px;font-weight:400;letter-spacing:1.5px;color:var(--steel-dim);text-transform:uppercase;margin-top:2px;}
+.year-select{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.18);
+  color:#F3F1EA;
+  font-family:var(--font-mono);
+  font-size:14px;
+  padding:6px 10px;
+  border-radius:6px;
+}
+.gauge-row{display:flex;gap:22px;margin-top:16px;flex-wrap:wrap;}
+.gauge{flex:1;min-width:140px;}
+.gauge-label{font-size:11px;letter-spacing:1px;color:var(--steel-dim);text-transform:uppercase;}
+.gauge-value{font-family:var(--font-mono);font-size:24px;font-weight:700;margin-top:2px;}
+.gauge-value.plus{color:#7FBF9A;}
+.gauge-value.minus{color:#E39587;}
+
+/* ---------- Tabs ---------- */
+.tabs{display:flex;gap:4px;overflow-x:auto;margin-bottom:18px;border-bottom:2px solid var(--grid-strong);}
+.tab-btn{
+  font-family:var(--font-display);
+  font-size:16px;letter-spacing:0.3px;
+  background:none;border:none;
+  padding:9px 14px 11px;
+  color:var(--steel);
+  cursor:pointer;white-space:nowrap;
+  border-bottom:3px solid transparent;
+  margin-bottom:-2px;
+}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--amber);}
+
+/* ---------- Panels/cards ---------- */
+.panel{background:var(--panel);border:1px solid var(--grid);border-radius:8px;padding:18px 20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(28,43,54,0.04);}
+.panel h2{font-family:var(--font-display);font-weight:600;font-size:20px;margin:0 0 12px;letter-spacing:0.3px;}
+.panel h3{font-family:var(--font-display);font-weight:600;font-size:16px;margin:0 0 8px;color:var(--steel);}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:700px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+.stat-card{background:var(--panel);border:1px solid var(--grid);border-radius:8px;padding:14px 16px;}
+.stat-card .lbl{font-size:12px;color:var(--steel);letter-spacing:0.5px;}
+.stat-card .val{font-family:var(--font-mono);font-size:22px;font-weight:700;margin-top:4px;}
+
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th,td{padding:8px 10px;border-bottom:1px solid var(--grid);text-align:left;}
+th{font-family:var(--font-display);font-weight:600;font-size:13px;color:var(--steel);letter-spacing:0.3px;text-transform:uppercase;background:rgba(107,138,153,0.06);}
+td.num,th.num{text-align:right;font-family:var(--font-mono);}
+tr.total-row td{font-weight:700;border-top:2px solid var(--grid-strong);background:rgba(217,142,63,0.08);}
+.amt-plus{color:var(--plus);}
+.amt-minus{color:var(--minus);}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;background:rgba(107,138,153,0.14);color:var(--steel);}
+.tag.income{background:rgba(75,122,91,0.14);color:var(--plus);}
+
+/* ---------- Buttons ---------- */
+.btn{
+  font-family:var(--font-body);font-weight:500;font-size:14px;
+  padding:9px 16px;border-radius:6px;border:1px solid var(--grid-strong);
+  background:var(--panel);color:var(--ink);cursor:pointer;
+}
+.btn:hover{border-color:var(--steel);}
+.btn-primary{background:var(--amber);border-color:var(--amber-deep);color:#fff;font-weight:700;}
+.btn-primary:hover{background:var(--amber-deep);}
+.btn-ghost{border-color:transparent;background:none;color:var(--steel);}
+.btn-danger{color:var(--minus);border-color:var(--minus);background:none;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.actions-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ---------- Form ---------- */
+label{display:block;font-size:12px;color:var(--steel);margin-bottom:4px;margin-top:12px;letter-spacing:0.3px;}
+label:first-child{margin-top:0;}
+input[type=text],input[type=number],input[type=date],select,textarea{
+  width:100%;padding:9px 10px;border:1px solid var(--grid-strong);border-radius:6px;
+  font-family:var(--font-body);font-size:14px;background:#fff;color:var(--ink);
+}
+input[type=number]{font-family:var(--font-mono);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.help{font-size:11px;color:var(--steel-dim);margin-top:4px;}
+
+/* ---------- Modal ---------- */
+.modal-overlay{position:fixed;inset:0;background:rgba(28,43,54,0.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.modal-box{background:var(--panel);border-radius:10px;padding:22px 24px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;}
+.modal-box h3{font-family:var(--font-display);font-size:20px;margin:0 0 14px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+
+.hidden{display:none !important;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--steel);}
+.empty-state .big{font-family:var(--font-display);font-size:20px;color:var(--ink);margin-bottom:6px;}
+
+footer.app-foot{text-align:center;color:var(--steel-dim);font-size:11px;margin-top:24px;}
+
+.badge-ratio{font-family:var(--font-mono);font-size:12px;background:rgba(217,142,63,0.15);color:var(--amber-deep);padding:2px 6px;border-radius:4px;}
+
+#print-report{position:absolute;left:-99999px;top:0;width:794px;background:#fff;}
+.rpt-page{width:794px;min-height:1123px;padding:40px 44px;background:#fff;font-family:'Noto Sans JP',sans-serif;color:#111;box-sizing:border-box;}
+.rpt-title{text-align:center;font-size:20px;font-weight:700;letter-spacing:4px;margin-bottom:4px;}
+.rpt-sub{text-align:center;font-size:11px;color:#555;margin-bottom:18px;}
+.rpt-meta{display:flex;justify-content:space-between;font-size:12px;margin-bottom:14px;border-bottom:1px solid #333;padding-bottom:8px;}
+.rpt-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;}
+.rpt-table th,.rpt-table td{border:1px solid #888;padding:5px 8px;}
+.rpt-table th{background:#EFEBE0;font-weight:700;text-align:left;}
+.rpt-table td.n{text-align:right;font-family:'Roboto Mono',monospace;}
+.rpt-section-title{font-size:13px;font-weight:700;margin:16px 0 6px;padding-left:6px;border-left:4px solid #D98E3F;}
+.rpt-total td{font-weight:700;background:#F5EFDF;}
+.rpt-note{font-size:10px;color:#666;margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="nameplate">
+    <div class="rivet-tl"></div><div class="rivet-br"></div>
+    <div class="nameplate-top">
+      <div class="brand">しらべ帳<small>個人事業主の白色申告 収支管理</small></div>
+      <select id="yearSelect" class="year-select"></select>
+    </div>
+    <div class="gauge-row">
+      <div class="gauge"><div class="gauge-label">収入計</div><div class="gauge-value" id="gaugeIncome">¥0</div></div>
+      <div class="gauge"><div class="gauge-label">必要経費計</div><div class="gauge-value" id="gaugeExpense">¥0</div></div>
+      <div class="gauge"><div class="gauge-label">所得金額</div><div class="gauge-value plus" id="gaugeProfit">¥0</div></div>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div id="main"></div>
+
+  <footer class="app-foot">しらべ帳 &mdash; データは端末内(localStorage)にのみ保存されます。定期的に「データ管理」からバックアップしてください。</footer>
+</div>
+
+<div id="modal-root"></div>
+<div id="print-report"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="app.js"></script>
+<script src="receipt.js"></script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW registration failed',e));
+  });
+}
+</script>
+</body>
+</html>

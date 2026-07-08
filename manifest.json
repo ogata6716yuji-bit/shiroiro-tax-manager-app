@@ -1,0 +1,16 @@
+{
+  "name": "しらべ帳 - 白色申告 収支管理",
+  "short_name": "しらべ帳",
+  "description": "個人事業主の白色申告向け収支管理・収支内訳書作成アプリ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F1EA",
+  "theme_color": "#1C2B36",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" }
+  ]
+}
